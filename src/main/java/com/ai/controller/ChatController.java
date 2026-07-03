@@ -23,4 +23,5 @@ public class ChatController {
 		
 		return ResponseEntity.ok(resultResponse);
 	}
+	
 }
