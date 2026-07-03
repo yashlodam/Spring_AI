@@ -1,6 +1,8 @@
 package com.ai.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -9,19 +11,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ChatController {
 
-	private ChatClient chatClient;
-	
-	public ChatController(ChatClient.Builder builder) {
-		this.chatClient = builder.build();
-	}
-	
-	@GetMapping("/chat")
-	public ResponseEntity<String> Chat(@RequestParam(value = "q",required = true) String q){
-		
-		
-		var resultResponse = chatClient.prompt(q).call().content();
-		
-		return ResponseEntity.ok(resultResponse);
-	}
-	
+    private final ChatClient geminiChatClient;
+    private final ChatClient groqChatClient;
+
+    public ChatController(
+            @Qualifier("googleGenAiChatModel") ChatModel geminiChatModel,
+            @Qualifier("openAiChatModel") ChatModel openAiChatModel) {
+
+        this.geminiChatClient = ChatClient.builder(geminiChatModel).build();
+        this.groqChatClient = ChatClient.builder(openAiChatModel).build();
+    }
+
+    @GetMapping("/chat")
+    public ResponseEntity<String> chat(@RequestParam(value = "q", required = true) String q) {
+
+        String response = groqChatClient
+                .prompt(q)
+                .call()
+                .content();
+
+        return ResponseEntity.ok(response);
+    }
 }
